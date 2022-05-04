@@ -1,0 +1,5 @@
+{
+  "tifpath":"ADD_TIFF_PATH",
+  "connstring":"ADD_CONNECTION_STRING",
+  "sqlstatement":"ADD_SQL_SELECT_STATEMENT"
+}
