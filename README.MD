@@ -1,4 +1,4 @@
-## why
+## Rationale
 
 Initial attemps to spatially join a geotiff raster on postgres took too long with queries such as this one: 
 
@@ -19,7 +19,7 @@ where target."PrimaryKey" = src."PrimaryKey"
 
 After a raster image was sent to be stored in PG, this query would use the postgis geometry field to spatially join each point and extract a raster value with the ST_value() function.
 
-However because the size of the raster was too extensive even having only one band, I opted to use an out-db method that would store the cloud-optimized-geotiff (produced by this script: link to repo ) on aws and only load pointers to the information on postgres, making the retrival faster. 
+However because the size of the raster was too extensive even having only one band, I opted to use an [out-db method](https://www.crunchydata.com/blog/postgis-raster-and-crunchy-bridge) that would store the cloud-optimized-geotiff (produced by this [script](https://github.com/krstphrrr/gdal_COG) ) on aws and only load pointers to the information on postgres, making the retrival faster. 
 
 ```
 
