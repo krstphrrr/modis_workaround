@@ -5,12 +5,12 @@ import pandas as pd
 import geopandas as gpd
 from sqlalchemy import create_engine
 
-json.load(open(file=os.path.join(os.getcwd(),"config.json")))["constring"]
+json.load(open(file=os.path.join(os.getcwd(),"config.json")))["connstring"]
 
 # after adding a geometry column to geoindicators
-constring = json.load(open(file=os.path.join(os.getcwd(),"config.json")))["constring"]
-tifpath = json.load(open(file=os.path.join(os.getcwd(),"config.json")))["tifpath"]
-sqlstatement = json.load(open(file=os.path.join(os.getcwd(),"config.json")))["sqlstatement"]
+constring = json.load(open(file=os.path.join("r",os.getcwd(),"config.json")))["connstring"]
+tifpath = json.load(open(file=os.path.join("r",os.getcwd(),"config.json")))["tifpath"]
+sqlstatement = json.load(open(file=os.path.join("r",os.getcwd(),"config.json")))["sqlstatement"]
 
 eng = create_engine(constring)
 gi = gpd.read_postgis(sqlstatement, eng, geom_col="wkb_geometry")
@@ -38,7 +38,7 @@ def extract_modis_values(
 
     return final_dataframe
 
-pgdf = extract_modis_values(gi,tifpath) 
+pgdf = extract_modis_values(gi,tifpath)
 pg = pgdf.copy(deep=True)
 # get modis classes // can be from local csv or database
 classes = pd.read_sql('select * from public.modis_classes;', eng)
@@ -47,4 +47,5 @@ pg.rename(columns={"modis_val":"Value"}, inplace=True)
 final = pg.merge(classes, on="Value", how="inner").filter(["PrimaryKey", "Name"])
 
 # using pandas, sends dataframe with modis values to postgres
-final.to_sql('modis_values', eng, schema='public_dev')
+final.to_sql('modis_values', eng, schema='public')
+final.to_csv(f'{os.getcwd()}/modis_classes.csv') # if sending doesnt work, just csv

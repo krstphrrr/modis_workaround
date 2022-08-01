@@ -1,0 +1,4 @@
+**/config.json
+**/modis_classes
+**/*.csv
+**/*.tif
