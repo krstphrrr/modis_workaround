@@ -1,8 +1,8 @@
-## why
+## Rationale
 
 Initial attemps to spatially join a geotiff raster on postgres took too long with queries such as this one: 
 
-```
+```sql
 with test as (
 	select * from public_dev."dataHeader" 
 )
@@ -19,10 +19,9 @@ where target."PrimaryKey" = src."PrimaryKey"
 
 After a raster image was sent to be stored in PG, this query would use the postgis geometry field to spatially join each point and extract a raster value with the ST_value() function.
 
-However because the size of the raster was too extensive even having only one band, I opted to use an out-db method that would store the cloud-optimized-geotiff (produced by this script: link to repo ) on aws and only load pointers to the information on postgres, making the retrival faster. 
+However because the size of the raster was too extensive even having only one band, I opted to use an [out-db method](https://www.crunchydata.com/blog/postgis-raster-and-crunchy-bridge) that would store the cloud-optimized-geotiff (produced by this [script](https://github.com/krstphrrr/gdal_COG) ) on aws and only load pointers to the information on postgres, making the retrival faster. 
 
-```
-
+```sql
 update public_dev."geoIndicators"
 set modis_val = st_value(rastr.rast,1,public_dev."geoIndicators".wkb_geometry)
 from gis.modis_merge_outdb as rastr 
@@ -33,12 +32,13 @@ WHERE st_intersects(public_dev."geoIndicators".wkb_geometry, st_convexhull(rastr
 This did not work, as a bug in the used version of postgres did not permit enabling '/vsicurl', a virtual file system used by postgres to query the cloud optimized geoTIFF on AWS. 
 
 The error persisted despite enabling full GDAL functionality, further suggesting it was a postgres bug:
-```
+
+```sql
 SET postgis.gdal_enabled_drivers = 'ENABLE_ALL';
 ```
 
 response:
-```
+```sql
 ERROR:  rt_util_gdal_open: Cannot open VSICURL file. VSICURL disabled
 CONTEXT:  PL/pgSQL function st_value(raster,integer,geometry,boolean) line 18 at RETURN
 ```
@@ -46,7 +46,7 @@ CONTEXT:  PL/pgSQL function st_value(raster,integer,geometry,boolean) line 18 at
 
 I had to manually create this join using python, and in order to do that I started by adding geometry to the "geoIndicators" to reduce the amount of joins in subsequent statements: 
 
-```
+```sql
 alter table public_dev."geoIndicators" 
 add column wkb_geometry GEOMETRY;
 
@@ -58,7 +58,7 @@ where target."PrimaryKey" = dh."PrimaryKey" ;
 
 Once I manually created the modis_value table with python, this join populated the modis_landscape field after which I dropped the geometry field:
 
-```
+```sql
 alter table public_dev."geoIndicators" 
 add column modis_landcover varchar(100);
 
